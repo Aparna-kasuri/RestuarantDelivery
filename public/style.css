@@ -1,0 +1,360 @@
+:root {
+    --primary: #7c3aed;
+    --primary-hover: #6d28d9;
+
+    --bg-main: #eef2ff;
+    --bg-card: rgba(255, 255, 255, 0.7);
+
+    --text-main: #1e1b4b;
+    --text-muted: #6b7280;
+
+    --border: rgba(0, 0, 0, 0.08);
+
+    --danger: #ef4444;
+    --success: #22c55e;
+
+    --sidebar-bg: linear-gradient(180deg, #1e1b4b, #312e81);
+}
+
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Body */
+body {
+    background: linear-gradient(135deg, #c7d2fe, #e0e7ff);
+    color: var(--text-main);
+}
+
+/* Layout */
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: var(--sidebar-bg);
+    color: white;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+    /* FIX: prevent sidebar from shrinking on small screens */
+    flex-shrink: 0;
+}
+
+.logo h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: white;
+}
+
+.logo span {
+    color: #a5b4fc;
+}
+
+/* Sidebar vertical menu */
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Navigation buttons */
+.nav-btn {
+    background: none;
+    border: none;
+    color: #c7d2fe;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    display: block;
+    font-size: 0.95rem;
+}
+
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.nav-btn.active {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: white;
+}
+
+/* Content */
+.content {
+    flex: 1;
+    padding: 2rem 3rem;
+    overflow-y: auto;
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;        /* FIX: was missing, title and user badge were misaligned */
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.user-info span {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Views */
+.view {
+    display: none;
+}
+
+.view.active {
+    display: block;
+    animation: fadeIn 0.3s ease; /* FIX: added smooth reveal animation */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Cards */
+.card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); /* FIX: Safari support was missing */
+    border-radius: 1rem;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;      /* FIX: cards were stacking without spacing */
+}
+
+.card h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    color: var(--text-main);
+}
+
+.card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--primary);
+}
+
+/* Forms */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+@media (max-width: 700px) {
+    .form-grid {
+        grid-template-columns: 1fr; /* FIX: was missing responsive behaviour */
+    }
+}
+
+input, select {               /* FIX: select was not styled, only input was */
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input:focus, select:focus {   /* FIX: focus state was completely missing */
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+/* Buttons */
+.submit-btn {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    margin-top: 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.submit-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+}
+
+/* Table */
+.table-container {
+    overflow-x: auto;           /* FIX: table was overflowing on small screens */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 0.9rem;
+}
+
+th {
+    background: #eef2ff;
+    color: #4f46e5;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+td {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-main);
+}
+
+tr:last-child td {
+    border-bottom: none;        /* FIX: last row had a dangling bottom border */
+}
+
+tr:hover td {
+    background: rgba(124, 58, 237, 0.04); /* FIX: no hover state on rows */
+}
+
+/* Delete Button */
+.delete-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;            /* FIX: cursor pointer was missing */
+    font-size: 0.8rem;
+    transition: 0.2s;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+    color: white;
+}
+
+/* Dashboard stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+    text-align: center;
+}
+
+.stat-card h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    opacity: 0.85;
+    margin-bottom: 0.5rem;
+    color: white;               /* FIX: inherited purple from .card h3 */
+}
+
+.stat-card p {
+    font-size: 2rem;            /* FIX: closing brace was missing — file was cut off here */
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+/* Table header/action row */
+.table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+/* Refresh button */
+.refresh-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.4rem 0.85rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Empty state row */
+.empty-row td {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 1.5rem;
+    font-style: italic;
+}
+
+/* Toast notification */
+#toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: #1e1b4b;
+    color: white;
+    padding: 0.8rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    border-left: 4px solid var(--success);
+    transform: translateY(120%);
+    transition: transform 0.3s ease;
+    z-index: 999;
+    max-width: 300px;
+}
+
+#toast.show {
+    transform: translateY(0);
+}
+
+#toast.error {
+    border-left-color: var(--danger);
+}

@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --sidebar: #1a1f36;
+            --accent: #4f8ef7;
+            --card: #ffffff;
+            --text: #1a1f36;
+            --muted: #8a94a6;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --input-bg: #f8fafc;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        .container { display: flex; min-height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 230px; background: var(--sidebar);
+            display: flex; flex-direction: column;
+            padding: 2rem 1rem; position: fixed;
+            top: 0; left: 0; bottom: 0; z-index: 50;
+        }
+        .logo h2 { font-size: 1.4rem; font-weight: 600; color: #fff; margin-bottom: 2.5rem; }
+        .logo h2 span { color: var(--accent); }
+        nav { display: flex; flex-direction: column; gap: .4rem; }
+        .nav-btn {
+            background: none; border: none; color: #a0aec0;
+            font-family: 'Outfit', sans-serif; font-size: .95rem;
+            padding: .75rem 1.1rem; border-radius: 8px;
+            cursor: pointer; text-align: left; transition: all .2s;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,.07); color: #fff; }
+        .nav-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
+
+        /* MAIN */
+        .content { margin-left: 230px; flex: 1; display: flex; flex-direction: column; }
+        header {
+            background: var(--card); border-bottom: 1px solid var(--border);
+            padding: 1.1rem 2rem; display: flex; align-items: center;
+            justify-content: space-between; position: sticky; top: 0; z-index: 40;
+        }
+        header h1 { font-size: 1.3rem; font-weight: 600; }
+        .user-info span {
+            background: var(--accent); color: #fff;
+            padding: .35rem .9rem; border-radius: 20px;
+            font-size: .85rem; font-weight: 600;
+        }
+
+        /* VIEWS */
+        .view { display: none; padding: 2rem; animation: fadeIn .3s ease; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+        /* CARDS */
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.5rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        }
+        .card h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.2rem; }
+        .card h3 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; color: var(--accent); }
+
+        /* STATS */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem; margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 1.4rem; text-align: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        }
+        .stat-card h3 { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: .5rem; font-weight: 400; }
+        .stat-card p { font-size: 2.2rem; font-weight: 600; color: var(--accent); }
+
+        /* FORMS */
+        input, select {
+            display: block; width: 100%; background: var(--input-bg);
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: .65rem .9rem; font-family: 'Outfit', sans-serif;
+            font-size: .9rem; color: var(--text);
+            margin-bottom: .8rem; outline: none; transition: border-color .2s;
+        }
+        input:focus, select:focus { border-color: var(--accent); }
+        .submit-btn {
+            background: var(--accent); color: #fff; border: none;
+            border-radius: 8px; padding: .7rem 1.4rem;
+            font-family: 'Outfit', sans-serif; font-size: .95rem;
+            font-weight: 600; cursor: pointer; transition: opacity .2s; width: 100%;
+        }
+        .submit-btn:hover { opacity: .85; }
+
+        /* TABLE */
+        .two-col { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: start; }
+        @media(max-width:900px) { .two-col { grid-template-columns: 1fr; } }
+        .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+        th {
+            text-align: left; padding: .6rem .9rem;
+            font-size: .75rem; text-transform: uppercase;
+            letter-spacing: 1.2px; color: var(--muted);
+            border-bottom: 2px solid var(--border);
+        }
+        td { padding: .8rem .9rem; border-bottom: 1px solid var(--border); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+        .empty-row td { text-align: center; color: var(--muted); padding: 1.5rem; }
+        .refresh-btn {
+            background: none; border: 1px solid var(--border);
+            border-radius: 8px; padding: .4rem .85rem;
+            font-family: 'Outfit', sans-serif; font-size: .85rem;
+            cursor: pointer; color: var(--muted); transition: all .2s;
+        }
+        .refresh-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* ACTION BUTTONS */
+        .delete-btn {
+            background: #fee2e2; color: #dc2626; border: none;
+            padding: .35rem .75rem; border-radius: 6px;
+            font-size: .82rem; font-family: 'Outfit', sans-serif;
+            cursor: pointer; transition: all .2s; margin-right: 4px;
+        }
+        .delete-btn:hover { background: #dc2626; color: #fff; }
+        .edit-btn {
+            background: #e0f2fe; color: #0369a1; border: none;
+            padding: .35rem .75rem; border-radius: 6px;
+            font-size: .82rem; font-family: 'Outfit', sans-serif;
+            cursor: pointer; transition: all .2s;
+        }
+        .edit-btn:hover { background: #0369a1; color: #fff; }
+
+        /* TOAST */
+        #toast {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            background: #1a1f36; color: #fff;
+            padding: .8rem 1.4rem; border-radius: 10px;
+            font-size: .9rem; border-left: 4px solid var(--success);
+            transform: translateY(120%); transition: transform .3s ease;
+            z-index: 999; max-width: 300px;
+        }
+        #toast.show { transform: translateY(0); }
+        #toast.error { border-left-color: var(--danger); }
+
+        /* MODAL */
+        .modal-overlay {
+            display: none; position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 200; align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--card); border-radius: 16px;
+            padding: 2rem; width: 420px; max-width: 95vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: fadeIn .25s ease;
+        }
+        .modal-header {
+            display: flex; align-items: center;
+            justify-content: space-between; margin-bottom: 1.5rem;
+        }
+        .modal-header h2 { font-size: 1.1rem; font-weight: 600; color: var(--accent); }
+        .modal-close {
+            background: none; border: none; font-size: 1.4rem;
+            cursor: pointer; color: var(--muted); line-height: 1;
+        }
+        .modal-close:hover { color: var(--danger); }
+        .modal-footer { display: flex; gap: .8rem; margin-top: 1rem; }
+        .modal-footer .submit-btn { flex: 1; }
+        .cancel-btn {
+            flex: 1; background: var(--bg); color: var(--text);
+            border: 1px solid var(--border); border-radius: 8px;
+            padding: .7rem; font-family: 'Outfit', sans-serif;
+            font-size: .95rem; font-weight: 600; cursor: pointer;
+        }
+        .cancel-btn:hover { background: var(--border); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo"><h2>Delivery<span>System</span></h2></div>
+        <nav>
+            <button class="nav-btn active" data-target="dashboard">📊 Dashboard</button>
+            <button class="nav-btn" data-target="customers">👥 Customers</button>
+            <button class="nav-btn" data-target="orders">🧾 Orders</button>
+            <button class="nav-btn" data-target="staff">🛵 Delivery Staff</button>
+            <button class="nav-btn" data-target="deliveries">📦 Deliveries</button>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <header>
+            <h1 id="page-title">Dashboard</h1>
+            <div class="user-info"><span>Admin</span></div>
+        </header>
+
+        <!-- DASHBOARD -->
+        <section id="dashboard" class="view active">
+            <div class="stats-grid">
+                <div class="stat-card"><h3>Customers</h3><p id="stat-customers">0</p></div>
+                <div class="stat-card"><h3>Total Orders</h3><p id="stat-orders">0</p></div>
+                <div class="stat-card"><h3>Staff</h3><p id="stat-staff">0</p></div>
+                <div class="stat-card"><h3>Deliveries</h3><p id="stat-deliveries">0</p></div>
+            </div>
+            <div class="card">
+                <h2>Daily Delivery Trend</h2>
+                <canvas id="dailyChart" height="100"></canvas>
+            </div>
+        </section>
+
+        <!-- CUSTOMERS -->
+        <section id="customers" class="view">
+            <div class="two-col">
+                <div class="card">
+                    <h3>Add Customer</h3>
+                    <input type="number" id="customer_id" placeholder="Customer ID">
+                    <input type="text" id="customer_name" placeholder="Name">
+                    <input type="text" id="customer_phone" placeholder="Phone">
+                    <input type="text" id="customer_address" placeholder="Address">
+                    <button onclick="addCustomer()" class="submit-btn">Add Customer</button>
+                </div>
+                <div class="card">
+                    <div class="table-header">
+                        <h2>Customer List</h2>
+                        <button class="refresh-btn" onclick="loadCustomers()">↻ Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Address</th><th>Actions</th></tr></thead>
+                            <tbody id="customers-body">
+                                <tr class="empty-row"><td colspan="5">Click Refresh to load data</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ORDERS -->
+        <section id="orders" class="view">
+            <div class="two-col">
+                <div class="card">
+                    <h3>Add Order</h3>
+                    <input type="number" id="order_id" placeholder="Order ID">
+                    <input type="number" id="order_customer_id" placeholder="Customer ID">
+                    <input type="date" id="order_date">
+                    <select id="order_status">
+                        <option value="">Select Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Delivered">Delivered</option>
+                    </select>
+                    <button onclick="addOrder()" class="submit-btn">Add Order</button>
+                </div>
+                <div class="card">
+                    <div class="table-header">
+                        <h2>Order List</h2>
+                        <button class="refresh-btn" onclick="loadOrders()">↻ Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Order ID</th><th>Customer ID</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="orders-body">
+                                <tr class="empty-row"><td colspan="5">Click Refresh to load data</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DELIVERY STAFF -->
+        <section id="staff" class="view">
+            <div class="two-col">
+                <div class="card">
+                    <h3>Add Delivery Staff</h3>
+                    <input type="number" id="staff_id" placeholder="Staff ID">
+                    <input type="text" id="staff_name" placeholder="Name">
+                    <input type="text" id="staff_phone" placeholder="Phone">
+                    <button onclick="addStaff()" class="submit-btn">Add Staff</button>
+                </div>
+                <div class="card">
+                    <div class="table-header">
+                        <h2>Staff List</h2>
+                        <button class="refresh-btn" onclick="loadStaff()">↻ Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Staff ID</th><th>Name</th><th>Phone</th><th>Actions</th></tr></thead>
+                            <tbody id="staff-body">
+                                <tr class="empty-row"><td colspan="4">Click Refresh to load data</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DELIVERIES -->
+        <section id="deliveries" class="view">
+            <div class="two-col">
+                <div class="card">
+                    <h3>Add Delivery</h3>
+                    <input type="number" id="delivery_id" placeholder="Delivery ID">
+                    <input type="number" id="delivery_order_id" placeholder="Order ID">
+                    <input type="number" id="delivery_staff_id" placeholder="Staff ID">
+                    <input type="text" id="delivery_time" placeholder="Time (e.g. 14:30)">
+                    <input type="date" id="delivery_date">
+                    <button onclick="addDelivery()" class="submit-btn">Add Delivery</button>
+                </div>
+                <div class="card">
+                    <div class="table-header">
+                        <h2>Delivery List</h2>
+                        <button class="refresh-btn" onclick="loadDeliveries()">↻ Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Delivery ID</th><th>Order ID</th><th>Staff ID</th><th>Time</th><th>Date</th><th>Actions</th></tr></thead>
+                            <tbody id="delivery-body">
+                                <tr class="empty-row"><td colspan="6">Click Refresh to load data</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ── EDIT MODAL ── -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="modal-title">Edit Record</h2>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div id="modal-body"></div>
+        <div class="modal-footer">
+            <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+            <button class="submit-btn" onclick="submitUpdate()">💾 Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = "http://localhost:9090/api/restaurant";
+    let chartInstance = null;
+    let currentEditEndpoint = '';
+    let currentEditId = 0;
+
+    // ── NAVIGATION ──
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            btn.classList.add('active');
+            const target = btn.getAttribute('data-target');
+            document.getElementById(target).classList.add('active');
+            document.getElementById('page-title').textContent =
+                btn.textContent.replace(/[^\w\s]/g, '').trim();
+            if (target === 'dashboard') loadDashboard();
+        });
+    });
+
+    // ── TOAST ──
+    function toast(msg, isError = false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'show' + (isError ? ' error' : '');
+        setTimeout(() => t.className = '', 3000);
+    }
+
+    // ── API HELPERS ──
+    async function apiGet(endpoint) {
+        try {
+            const res = await fetch(`${API}/${endpoint}`);
+            return await res.json();
+        } catch (e) {
+            toast('Cannot connect to server.', true);
+            return [];
+        }
+    }
+
+    async function apiPost(endpoint, data) {
+        try {
+            const res = await fetch(`${API}/${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const text = await res.text();
+            const isErr = text.toLowerCase().includes('error') || text.toLowerCase().includes('duplicate');
+            toast(text, isErr);
+            return !isErr;
+        } catch (e) {
+            toast('Cannot connect to server.', true);
+            return false;
+        }
+    }
+
+    async function apiDelete(endpoint, id) {
+        if (!confirm(`Are you sure you want to delete record #${id}?`)) return;
+        try {
+            const res = await fetch(`${API}/${endpoint}/${id}`, { method: 'DELETE' });
+            const text = await res.text();
+            toast(text, text.toLowerCase().includes('not found'));
+            refreshCurrent(endpoint);
+        } catch (e) { toast('Cannot connect to server.', true); }
+    }
+
+    async function apiPut(endpoint, id, data) {
+        try {
+            const res = await fetch(`${API}/${endpoint}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const text = await res.text();
+            const isErr = !text.toLowerCase().includes('success');
+            toast(text, isErr);
+            return !isErr;
+        } catch (e) {
+            toast('Cannot connect to server.', true);
+            return false;
+        }
+    }
+
+    function refreshCurrent(endpoint) {
+        if (endpoint === 'customers')  loadCustomers();
+        else if (endpoint === 'orders')      loadOrders();
+        else if (endpoint === 'staff')       loadStaff();
+        else if (endpoint === 'deliveries')  loadDeliveries();
+    }
+
+    function val(id) { return document.getElementById(id).value.trim(); }
+    function clearInputs(...ids) { ids.forEach(id => document.getElementById(id).value = ''); }
+
+    // ── MODAL ──
+    function openEditModal(endpoint, record) {
+        currentEditEndpoint = endpoint;
+        let title = '', bodyHTML = '';
+
+        if (endpoint === 'customers') {
+            currentEditId = record.customer_id;
+            title = '✏️ Edit Customer #' + record.customer_id;
+            bodyHTML = `
+                <input type="text" id="edit_name" placeholder="Name" value="${record.name}">
+                <input type="text" id="edit_phone" placeholder="Phone" value="${record.phone}">
+                <input type="text" id="edit_address" placeholder="Address" value="${record.address}">`;
+        } else if (endpoint === 'orders') {
+            currentEditId = record.order_id;
+            title = '✏️ Edit Order #' + record.order_id;
+            bodyHTML = `
+                <input type="number" id="edit_customer_id" placeholder="Customer ID" value="${record.customer_id}">
+                <input type="date" id="edit_order_date" value="${record.order_date}">
+                <select id="edit_status">
+                    <option value="Pending"   ${record.status==='Pending'   ? 'selected':''}>Pending</option>
+                    <option value="Delivered" ${record.status==='Delivered' ? 'selected':''}>Delivered</option>
+                </select>`;
+        } else if (endpoint === 'staff') {
+            currentEditId = record.staff_id;
+            title = '✏️ Edit Staff #' + record.staff_id;
+            bodyHTML = `
+                <input type="text" id="edit_name" placeholder="Name" value="${record.name}">
+                <input type="text" id="edit_phone" placeholder="Phone" value="${record.phone}">`;
+        } else if (endpoint === 'deliveries') {
+            currentEditId = record.delivery_id;
+            title = '✏️ Edit Delivery #' + record.delivery_id;
+            bodyHTML = `
+                <input type="number" id="edit_order_id" placeholder="Order ID" value="${record.order_id}">
+                <input type="number" id="edit_staff_id" placeholder="Staff ID" value="${record.staff_id}">
+                <input type="text" id="edit_delivery_time" placeholder="Time (e.g. 14:30)" value="${record.delivery_time}">
+                <input type="date" id="edit_delivery_date" value="${record.delivery_date}">`;
+        }
+
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-body').innerHTML = bodyHTML;
+        document.getElementById('editModal').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').classList.remove('open');
+    }
+
+    // Close modal if clicking outside
+    document.getElementById('editModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    async function submitUpdate() {
+        let data = {};
+
+        if (currentEditEndpoint === 'customers') {
+            data = { name: val('edit_name'), phone: val('edit_phone'), address: val('edit_address') };
+        } else if (currentEditEndpoint === 'orders') {
+            data = { customer_id: val('edit_customer_id'), order_date: val('edit_order_date'), status: val('edit_status') };
+        } else if (currentEditEndpoint === 'staff') {
+            data = { name: val('edit_name'), phone: val('edit_phone') };
+        } else if (currentEditEndpoint === 'deliveries') {
+            data = { order_id: val('edit_order_id'), staff_id: val('edit_staff_id'), delivery_time: val('edit_delivery_time'), delivery_date: val('edit_delivery_date') };
+        }
+
+        const ok = await apiPut(currentEditEndpoint, currentEditId, data);
+        if (ok) {
+            closeModal();
+            refreshCurrent(currentEditEndpoint);
+        }
+    }
+
+    // ── DASHBOARD ──
+    async function loadDashboard() {
+        const [customers, orders, staff, deliveries] = await Promise.all([
+            apiGet('customers'), apiGet('orders'), apiGet('staff'), apiGet('deliveries')
+        ]);
+        document.getElementById('stat-customers').textContent = customers.length;
+        document.getElementById('stat-orders').textContent = orders.length;
+        document.getElementById('stat-staff').textContent = staff.length;
+        document.getElementById('stat-deliveries').textContent = deliveries.length;
+
+        const counts = {};
+        deliveries.forEach(d => {
+            const date = d.delivery_date || 'Unknown';
+            counts[date] = (counts[date] || 0) + 1;
+        });
+        const labels = Object.keys(counts).sort();
+        const data = labels.map(l => counts[l]);
+
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(document.getElementById('dailyChart'), {
+            type: 'line',
+            data: {
+                labels: labels.length ? labels : ['No data yet'],
+                datasets: [{
+                    label: 'Deliveries per Day',
+                    data: data.length ? data : [0],
+                    borderColor: '#4f8ef7',
+                    backgroundColor: 'rgba(79,142,247,0.1)',
+                    borderWidth: 2, tension: 0.4, fill: true,
+                    pointBackgroundColor: '#4f8ef7'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    }
+
+    // ── CUSTOMERS ──
+    async function addCustomer() {
+        const data = { customer_id: val('customer_id'), name: val('customer_name'), phone: val('customer_phone'), address: val('customer_address') };
+        if (!data.customer_id || !data.name) return toast('Customer ID and Name are required', true);
+        const ok = await apiPost('customers', data);
+        if (ok) { clearInputs('customer_id','customer_name','customer_phone','customer_address'); loadCustomers(); }
+    }
+
+    async function loadCustomers() {
+        const rows = await apiGet('customers');
+        const tb = document.getElementById('customers-body');
+        tb.innerHTML = rows.length
+            ? rows.map(r => `
+                <tr>
+                    <td>${r.customer_id}</td><td>${r.name}</td>
+                    <td>${r.phone}</td><td>${r.address}</td>
+                    <td>
+                        <button class="edit-btn" onclick='openEditModal("customers", ${JSON.stringify(r)})'>✏️ Edit</button>
+                        <button class="delete-btn" onclick="apiDelete('customers', ${r.customer_id})">🗑 Delete</button>
+                    </td>
+                </tr>`).join('')
+            : '<tr class="empty-row"><td colspan="5">No customers found</td></tr>';
+    }
+
+    // ── ORDERS ──
+    async function addOrder() {
+        const data = { order_id: val('order_id'), customer_id: val('order_customer_id'), order_date: val('order_date'), status: val('order_status') };
+        if (!data.order_id || !data.customer_id) return toast('Order ID and Customer ID are required', true);
+        const ok = await apiPost('orders', data);
+        if (ok) { clearInputs('order_id','order_customer_id','order_date'); document.getElementById('order_status').value = ''; loadOrders(); }
+    }
+
+    async function loadOrders() {
+        const rows = await apiGet('orders');
+        const tb = document.getElementById('orders-body');
+        tb.innerHTML = rows.length
+            ? rows.map(r => `
+                <tr>
+                    <td>${r.order_id}</td><td>${r.customer_id}</td><td>${r.order_date}</td>
+                    <td><span style="padding:2px 10px;border-radius:20px;font-size:.8rem;
+                        background:${r.status==='Delivered'?'#dcfce7':'#fef9c3'};
+                        color:${r.status==='Delivered'?'#16a34a':'#854d0e'}">${r.status}</span></td>
+                    <td>
+                        <button class="edit-btn" onclick='openEditModal("orders", ${JSON.stringify(r)})'>✏️ Edit</button>
+                        <button class="delete-btn" onclick="apiDelete('orders', ${r.order_id})">🗑 Delete</button>
+                    </td>
+                </tr>`).join('')
+            : '<tr class="empty-row"><td colspan="5">No orders found</td></tr>';
+    }
+
+    // ── STAFF ──
+    async function addStaff() {
+        const data = { staff_id: val('staff_id'), name: val('staff_name'), phone: val('staff_phone') };
+        if (!data.staff_id || !data.name) return toast('Staff ID and Name are required', true);
+        const ok = await apiPost('staff', data);
+        if (ok) { clearInputs('staff_id','staff_name','staff_phone'); loadStaff(); }
+    }
+
+    async function loadStaff() {
+        const rows = await apiGet('staff');
+        const tb = document.getElementById('staff-body');
+        tb.innerHTML = rows.length
+            ? rows.map(r => `
+                <tr>
+                    <td>${r.staff_id}</td><td>${r.name}</td><td>${r.phone}</td>
+                    <td>
+                        <button class="edit-btn" onclick='openEditModal("staff", ${JSON.stringify(r)})'>✏️ Edit</button>
+                        <button class="delete-btn" onclick="apiDelete('staff', ${r.staff_id})">🗑 Delete</button>
+                    </td>
+                </tr>`).join('')
+            : '<tr class="empty-row"><td colspan="4">No staff found</td></tr>';
+    }
+
+    // ── DELIVERIES ──
+    async function addDelivery() {
+        const data = { delivery_id: val('delivery_id'), order_id: val('delivery_order_id'), staff_id: val('delivery_staff_id'), delivery_time: val('delivery_time'), delivery_date: val('delivery_date') };
+        if (!data.delivery_id || !data.order_id) return toast('Delivery ID and Order ID are required', true);
+        const ok = await apiPost('deliveries', data);
+        if (ok) { clearInputs('delivery_id','delivery_order_id','delivery_staff_id','delivery_time','delivery_date'); loadDeliveries(); }
+    }
+
+    async function loadDeliveries() {
+        const rows = await apiGet('deliveries');
+        const tb = document.getElementById('delivery-body');
+        tb.innerHTML = rows.length
+            ? rows.map(r => `
+                <tr>
+                    <td>${r.delivery_id}</td><td>${r.order_id}</td>
+                    <td>${r.staff_id}</td><td>${r.delivery_time}</td><td>${r.delivery_date}</td>
+                    <td>
+                        <button class="edit-btn" onclick='openEditModal("deliveries", ${JSON.stringify(r)})'>✏️ Edit</button>
+                        <button class="delete-btn" onclick="apiDelete('deliveries', ${r.delivery_id})">🗑 Delete</button>
+                    </td>
+                </tr>`).join('')
+            : '<tr class="empty-row"><td colspan="6">No deliveries found</td></tr>';
+    }
+
+    // Init
+    loadDashboard();
+</script>
+</body>
+</html>
